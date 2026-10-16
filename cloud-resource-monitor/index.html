@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cloud Resource Monitoring Dashboard | CloudWatch Pulse</title>
+  
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  
+  <!-- Chart.js CDN for data visualization -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- App Container -->
+  <div class="app-layout">
+    
+    <!-- SIDEBAR NAVIGATION -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="brand-logo">
+          <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path>
+            <polyline points="13 14 10 17 8 15"></polyline>
+          </svg>
+          <div class="brand-text">
+            <span class="brand-title">PulseCloud</span>
+            <span class="brand-badge">MONITOR</span>
+          </div>
+        </div>
+        <button class="btn-icon mobile-close-btn" id="sidebarCloseBtn" aria-label="Close Sidebar">
+          <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Navigation Links -->
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">MAIN NAVIGATION</div>
+        <ul class="nav-list">
+          <li class="nav-item">
+            <a href="#overview" class="nav-link active" data-target="overview">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="7" height="7"></rect>
+                <rect x="14" y="3" width="7" height="7"></rect>
+                <rect x="14" y="14" width="7" height="7"></rect>
+                <rect x="3" y="14" width="7" height="7"></rect>
+              </svg>
+              <span>Overview</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#servers" class="nav-link" data-target="servers">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
+                <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
+                <line x1="6" y1="6" x2="6.01" y2="6"></line>
+                <line x1="6" y1="18" x2="6.01" y2="18"></line>
+              </svg>
+              <span>Servers</span>
+              <span class="nav-pill" id="navServerCount">8</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#monitoring" class="nav-link" data-target="monitoring">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+              </svg>
+              <span>Live Telemetry</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#alerts" class="nav-link" data-target="alerts">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+              </svg>
+              <span>Alert Center</span>
+              <span class="nav-pill alert-pill" id="navAlertCount">0</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#about" class="nav-link" data-target="about">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+              </svg>
+              <span>Architecture & About</span>
+            </a>
+          </li>
+        </ul>
+
+        <div class="nav-section-label">SIMULATOR ACTIONS</div>
+        <div class="sidebar-actions">
+          <button class="btn btn-secondary btn-sm btn-block" id="btnSimulateSpike">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+            </svg>
+            Trigger CPU Spike
+          </button>
+        </div>
+      </nav>
+
+      <!-- Sidebar Footer Status -->
+      <div class="sidebar-footer">
+        <div class="engine-status">
+          <div class="engine-indicator">
+            <span class="pulse-dot"></span>
+            <span class="engine-label">Engine: Simulated</span>
+          </div>
+          <span class="engine-subtext">AWS Adapter: Ready</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Sidebar Overlay for Mobile -->
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+    <!-- MAIN VIEWPORT -->
+    <div class="main-wrapper">
+      
+      <!-- TOP NAVIGATION BAR -->
+      <header class="top-header">
+        <div class="header-left">
+          <button class="btn-icon mobile-hamburger" id="hamburgerBtn" aria-label="Open Sidebar Menu">
+            <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none">
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
+          
+          <div class="breadcrumb-container">
+            <h1 class="page-title" id="pageTitle">Dashboard Overview</h1>
+            <div class="demo-tag">
+              <span class="demo-tag-dot"></span>
+              <span class="demo-tag-text">Simulated Telemetry v1.0</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="header-right">
+          <!-- Time Range Selector -->
+          <div class="control-group">
+            <label for="timeRangeSelect" class="sr-only">Time Range</label>
+            <div class="custom-select-wrapper">
+              <select id="timeRangeSelect" class="custom-select" aria-label="Select Time Range">
+                <option value="5m">Last 5 Minutes</option>
+                <option value="15m" selected>Last 15 Minutes</option>
+                <option value="1h">Last 1 Hour</option>
+                <option value="24h">Last 24 Hours</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Live Status Indicator & Pause/Resume -->
+          <button class="btn btn-control" id="btnPauseResume" title="Toggle telemetry live stream">
+            <span class="live-status-indicator live" id="liveIndicatorDot"></span>
+            <span id="pauseResumeLabel">Pause</span>
+          </button>
+
+          <!-- Manual Refresh Button -->
+          <button class="btn btn-control" id="btnRefresh" title="Manually sync telemetry data">
+            <svg class="btn-icon-svg" id="refreshIcon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
+            </svg>
+            <span class="hide-mobile">Refresh</span>
+          </button>
+
+          <!-- Theme Toggle Button -->
+          <button class="btn-icon theme-toggle-btn" id="btnThemeToggle" title="Toggle Light/Dark Theme" aria-label="Toggle Theme">
+            <!-- Sun Icon (shown in dark theme) -->
+            <svg class="icon-sun" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="5"></circle>
+              <line x1="12" y1="1" x2="12" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="23"></line>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+              <line x1="1" y1="12" x2="3" y2="12"></line>
+              <line x1="21" y1="12" x2="23" y2="12"></line>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+            <!-- Moon Icon (shown in light theme) -->
+            <svg class="icon-moon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+          </button>
+
+          <!-- Notification Bell & Panel Dropdown -->
+          <div class="notifications-wrapper">
+            <button class="btn-icon notif-bell-btn" id="btnNotifToggle" aria-label="View notifications">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+              </svg>
+              <span class="badge-count" id="headerNotifBadge">0</span>
+            </button>
+
+            <!-- Dropdown Notification Drawer -->
+            <div class="notif-dropdown" id="notifDropdown">
+              <div class="notif-header">
+                <h3>System Notifications</h3>
+                <div class="notif-actions">
+                  <button class="link-btn" id="btnMarkAllRead">Mark all read</button>
+                  <button class="link-btn text-danger" id="btnClearDropdownAlerts">Clear</button>
+                </div>
+              </div>
+              <div class="notif-list" id="notifDropdownList">
+                <div class="notif-empty">
+                  <svg viewBox="0 0 24 24" width="32" height="32" stroke="currentColor" stroke-width="1.5" fill="none">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="M8 12l2 2 4-4"></path>
+                  </svg>
+                  <p>All cloud systems nominal. No unread alerts.</p>
+                </div>
+              </div>
+              <div class="notif-footer">
+                <button class="btn btn-secondary btn-sm btn-block" id="btnViewAllAlerts">View Complete Alert History</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- MAIN SCROLLABLE CONTENT BODY -->
+      <main class="content-body" id="mainContent">
+
+        <!-- ============================================== -->
+        <!-- SECTION 1: OVERVIEW                            -->
+        <!-- ============================================== -->
+        <section class="page-section active" id="section-overview">
+          
+          <!-- Banner: Simulation Disclaimer & Cloud Status -->
+          <div class="notice-banner">
+            <div class="notice-icon">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+              </svg>
+            </div>
+            <div class="notice-text">
+              <strong>Simulated Cloud Telemetry Mode:</strong> Values are dynamically generated in real-time by the client-side simulator.
+              AWS CloudWatch integration hooks are pre-structured for production deployment.
+            </div>
+            <div class="notice-meta">
+              <span id="lastUpdatedTimestamp">Last synchronized: Just now</span>
+            </div>
+          </div>
+
+          <!-- Metric Cards Grid (Section A) -->
+          <div class="metrics-grid">
+            
+            <!-- 1. CPU Usage Card -->
+            <div class="metric-card" id="cardCpu">
+              <div class="card-header">
+                <div class="card-title-group">
+                  <span class="card-label">CPU USAGE</span>
+                  <span class="card-subtitle">Fleet Average</span>
+                </div>
+                <div class="card-icon-badge badge-cpu">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect>
+                    <rect x="9" y="9" width="6" height="6"></rect>
+                    <line x1="9" y1="1" x2="9" y2="4"></line>
+                    <line x1="15" y1="1" x2="15" y2="4"></line>
+                    <line x1="9" y1="20" x2="9" y2="23"></line>
+                    <line x1="15" y1="20" x2="15" y2="23"></line>
+                    <line x1="20" y1="9" x2="23" y2="9"></line>
+                    <line x1="20" y1="14" x2="23" y2="14"></line>
+                    <line x1="1" y1="9" x2="4" y2="9"></line>
+                    <line x1="1" y1="14" x2="4" y2="14"></line>
+                  </svg>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="metric-value-container">
+                  <span class="metric-value" id="cardCpuValue">42.5</span>
+                  <span class="metric-unit">%</span>
+                </div>
+                <div class="progress-bar-track">
+                  <div class="progress-bar-fill fill-cpu" id="cardCpuProgress" style="width: 42.5%;"></div>
+                </div>
+                <div class="card-footer-stats">
+                  <span class="stat-trend" id="cardCpuTrend">
+                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+                      <polyline points="17 6 23 6 23 12"></polyline>
+                    </svg>
+                    <span>Normal Range (&lt;80%)</span>
+                  </span>
+                  <span class="stat-secondary" id="cardCpuPeak">Peak: 64.1%</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 2. Memory Usage Card -->
+            <div class="metric-card" id="cardMemory">
+              <div class="card-header">
+                <div class="card-title-group">
+                  <span class="card-label">MEMORY USAGE</span>
+                  <span class="card-subtitle">RAM Allocated</span>
+                </div>
+                <div class="card-icon-badge badge-memory">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M6 19v-3"></path>
+                    <path d="M10 19v-3"></path>
+                    <path d="M14 19v-3"></path>
+                    <path d="M18 19v-3"></path>
+                    <path d="M6 8V5"></path>
+                    <path d="M10 8V5"></path>
+                    <path d="M14 8V5"></path>
+                    <path d="M18 8V5"></path>
+                    <rect x="2" y="8" width="20" height="8" rx="2"></rect>
+                  </svg>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="metric-value-container">
+                  <span class="metric-value" id="cardMemValue">61.8</span>
+                  <span class="metric-unit">%</span>
+                </div>
+                <div class="progress-bar-track">
+                  <div class="progress-bar-fill fill-memory" id="cardMemProgress" style="width: 61.8%;"></div>
+                </div>
+                <div class="card-footer-stats">
+                  <span class="stat-secondary" id="cardMemRaw">39.5 GB / 64 GB</span>
+                  <span class="stat-trend trend-neutral" id="cardMemStatus">Threshold: 85%</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 3. Network Inbound Card -->
+            <div class="metric-card">
+              <div class="card-header">
+                <div class="card-title-group">
+                  <span class="card-label">NETWORK INBOUND</span>
+                  <span class="card-subtitle">Ingress Bandwidth</span>
+                </div>
+                <div class="card-icon-badge badge-net-in">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <polyline points="19 12 12 19 5 12"></polyline>
+                  </svg>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="metric-value-container">
+                  <span class="metric-value" id="cardNetInValue">1,248</span>
+                  <span class="metric-unit">KB/s</span>
+                </div>
+                <div class="bandwidth-indicator">
+                  <div class="bandwidth-spark-bar" style="height: 40%"></div>
+                  <div class="bandwidth-spark-bar" style="height: 55%"></div>
+                  <div class="bandwidth-spark-bar" style="height: 70%"></div>
+                  <div class="bandwidth-spark-bar" style="height: 60%"></div>
+                  <div class="bandwidth-spark-bar" style="height: 85%"></div>
+                  <div class="bandwidth-spark-bar" style="height: 65%"></div>
+                </div>
+                <div class="card-footer-stats">
+                  <span class="stat-secondary" id="cardNetInMb">~1.22 MB/s</span>
+                  <span class="stat-trend trend-positive">Steady Stream</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 4. Network Outbound Card -->
+            <div class="metric-card">
+              <div class="card-header">
+                <div class="card-title-group">
+                  <span class="card-label">NETWORK OUTBOUND</span>
+                  <span class="card-subtitle">Egress Bandwidth</span>
+                </div>
+                <div class="card-icon-badge badge-net-out">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="19" x2="12" y2="5"></line>
+                    <polyline points="5 12 12 5 19 12"></polyline>
+                  </svg>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="metric-value-container">
+                  <span class="metric-value" id="cardNetOutValue">845</span>
+                  <span class="metric-unit">KB/s</span>
+                </div>
+                <div class="bandwidth-indicator">
+                  <div class="bandwidth-spark-bar out" style="height: 30%"></div>
+                  <div class="bandwidth-spark-bar out" style="height: 45%"></div>
+                  <div class="bandwidth-spark-bar out" style="height: 60%"></div>
+                  <div class="bandwidth-spark-bar out" style="height: 50%"></div>
+                  <div class="bandwidth-spark-bar out" style="height: 75%"></div>
+                  <div class="bandwidth-spark-bar out" style="height: 58%"></div>
+                </div>
+                <div class="card-footer-stats">
+                  <span class="stat-secondary" id="cardNetOutMb">~0.83 MB/s</span>
+                  <span class="stat-trend trend-positive">Healthy Outflow</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 5. Server Uptime Card -->
+            <div class="metric-card">
+              <div class="card-header">
+                <div class="card-title-group">
+                  <span class="card-label">SERVER UPTIME</span>
+                  <span class="card-subtitle">Cluster Availability</span>
+                </div>
+                <div class="card-icon-badge badge-uptime">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                  </svg>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="metric-value-container">
+                  <span class="metric-value metric-value-sm" id="cardUptimeValue">34d 18h 42m 19s</span>
+                </div>
+                <div class="uptime-badge-group">
+                  <span class="pill pill-success">99.98% SLA</span>
+                  <span class="stat-secondary">Zero Kernel Panics</span>
+                </div>
+                <div class="card-footer-stats">
+                  <span class="stat-secondary">Started: 2026-09-12</span>
+                  <span class="stat-trend trend-positive">Online Steady</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 6. Server Status Card -->
+            <div class="metric-card">
+              <div class="card-header">
+                <div class="card-title-group">
+                  <span class="card-label">SERVER FLEET STATUS</span>
+                  <span class="card-subtitle">Cluster Health</span>
+                </div>
+                <div class="card-icon-badge badge-status" id="cardStatusBadge">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                  </svg>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="metric-value-container">
+                  <span class="metric-value metric-status-text" id="cardStatusText">ONLINE</span>
+                  <span class="pulse-status-dot online" id="cardStatusDot"></span>
+                </div>
+                <div class="fleet-health-breakdown">
+                  <span class="health-item text-success"><strong id="fleetOnlineCount">7</strong> Online</span>
+                  <span class="health-separator">•</span>
+                  <span class="health-item text-warning"><strong id="fleetWarningCount">1</strong> Warning</span>
+                  <span class="health-separator">•</span>
+                  <span class="health-item text-danger"><strong id="fleetOfflineCount">0</strong> Critical</span>
+                </div>
+                <div class="card-footer-stats">
+                  <span class="stat-secondary">8 Total EC2 Nodes</span>
+                  <span class="stat-trend trend-positive" id="fleetHealthPercent">87.5% Healthy</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Quick Charts Row (Overview Visuals) -->
+          <div class="overview-visuals-grid">
+            <div class="dashboard-panel">
+              <div class="panel-header">
+                <div class="panel-title-group">
+                  <h3>Real-time Resource Utilization</h3>
+                  <p class="panel-subtitle">Combined CPU & Memory historical trendline</p>
+                </div>
+                <span class="badge-tag">Simulated Data Stream</span>
+              </div>
+              <div class="panel-body chart-panel-body">
+                <div class="chart-canvas-wrapper">
+                  <canvas id="overviewCombinedChart"></canvas>
+                </div>
+              </div>
+            </div>
+
+            <div class="dashboard-panel">
+              <div class="panel-header">
+                <div class="panel-title-group">
+                  <h3>Recent System Alerts</h3>
+                  <p class="panel-subtitle">Live events triggering threshold actions</p>
+                </div>
+                <button class="link-btn" id="btnGoToAlerts">View All</button>
+              </div>
+              <div class="panel-body">
+                <div class="quick-alerts-container" id="overviewQuickAlerts">
+                  <!-- Populated by JavaScript -->
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- ============================================== -->
+        <!-- SECTION 2: SERVERS (Fleet Table)               -->
+        <!-- ============================================== -->
+        <section class="page-section" id="section-servers">
+          
+          <div class="section-intro-bar">
+            <div>
+              <h2 class="section-heading">Cloud Server Fleet</h2>
+              <p class="section-subheading">Manage and inspect health metrics across your simulated virtual machines and containers.</p>
+            </div>
+            <div class="section-actions">
+              <button class="btn btn-primary" id="btnSimulateAddServer">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                Launch Instance
+              </button>
+            </div>
+          </div>
+
+          <!-- Server Table Controls (Search, Filters, Sort) -->
+          <div class="table-controls-bar">
+            <div class="search-input-wrapper">
+              <svg class="search-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              <input type="text" id="serverSearchInput" class="table-search-input" placeholder="Search by name, ID, or OS..." />
+              <button class="search-clear-btn" id="serverSearchClear" style="display: none;">&times;</button>
+            </div>
+
+            <!-- Status Filter Pills -->
+            <div class="filter-pills-group" id="serverStatusFilters">
+              <button class="filter-pill active" data-status="ALL">All <span class="pill-count" id="countFilterAll">8</span></button>
+              <button class="filter-pill" data-status="ONLINE">Online <span class="pill-count text-success" id="countFilterOnline">6</span></button>
+              <button class="filter-pill" data-status="WARNING">Warning <span class="pill-count text-warning" id="countFilterWarning">1</span></button>
+              <button class="filter-pill" data-status="CRITICAL">Critical <span class="pill-count text-danger" id="countFilterCritical">0</span></button>
+              <button class="filter-pill" data-status="OFFLINE">Offline <span class="pill-count text-muted" id="countFilterOffline">1</span></button>
+            </div>
+
+            <!-- OS Quick Filter Dropdown -->
+            <div class="custom-select-wrapper">
+              <select id="osFilterSelect" class="custom-select" aria-label="Filter by OS">
+                <option value="ALL">All Operating Systems</option>
+                <option value="Ubuntu">Ubuntu Linux</option>
+                <option value="Amazon Linux">Amazon Linux 2023</option>
+                <option value="Debian">Debian 12</option>
+                <option value="Red Hat">Red Hat EL 9</option>
+                <option value="Windows">Windows Server</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Server Fleet Data Table (Section C) -->
+          <div class="table-card">
+            <div class="table-responsive">
+              <table class="data-table" id="serverFleetTable">
+                <thead>
+                  <tr>
+                    <th class="sortable" data-sort="name">
+                      Server Name
+                      <span class="sort-icon">&#8597;</span>
+                    </th>
+                    <th class="sortable" data-sort="id">
+                      Instance ID
+                      <span class="sort-icon">&#8597;</span>
+                    </th>
+                    <th class="sortable" data-sort="os">
+                      Operating System
+                      <span class="sort-icon">&#8597;</span>
+                    </th>
+                    <th class="sortable" data-sort="cpu">
+                      CPU Usage
+                      <span class="sort-icon">&#8597;</span>
+                    </th>
+                    <th class="sortable" data-sort="memory">
+                      Memory Usage
+                      <span class="sort-icon">&#8597;</span>
+                    </th>
+                    <th class="sortable" data-sort="status">
+                      Status
+                      <span class="sort-icon">&#8597;</span>
+                    </th>
+                    <th class="sortable" data-sort="updated">
+                      Last Updated
+                      <span class="sort-icon">&#8597;</span>
+                    </th>
+                    <th class="text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="serverTableBody">
+                  <!-- Populated by JavaScript -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Empty State -->
+            <div class="table-empty-state" id="serverTableEmpty" style="display: none;">
+              <svg viewBox="0 0 24 24" width="48" height="48" stroke="currentColor" stroke-width="1.5" fill="none">
+                <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
+                <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
+                <line x1="6" y1="6" x2="6.01" y2="6"></line>
+                <line x1="6" y1="18" x2="6.01" y2="18"></line>
+              </svg>
+              <h3>No matching cloud servers found</h3>
+              <p>Try adjusting your search query or status filter criteria.</p>
+              <button class="btn btn-secondary btn-sm" id="btnResetServerFilters">Reset Filters</button>
+            </div>
+
+            <!-- Table Footer -->
+            <div class="table-footer">
+              <div class="table-summary-text" id="tableSummaryText">
+                Showing 8 of 8 servers
+              </div>
+              <div class="table-legend">
+                <span class="legend-item"><span class="legend-dot dot-online"></span> &lt;80% CPU</span>
+                <span class="legend-item"><span class="legend-dot dot-warning"></span> 80–90% CPU / &gt;85% RAM</span>
+                <span class="legend-item"><span class="legend-dot dot-critical"></span> &gt;90% CPU</span>
+              </div>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- ============================================== -->
+        <!-- SECTION 3: MONITORING (Deep Telemetry Charts)   -->
+        <!-- ============================================== -->
+        <section class="page-section" id="section-monitoring">
+          
+          <div class="section-intro-bar">
+            <div>
+              <h2 class="section-heading">Live Telemetry &amp; Metrics</h2>
+              <p class="section-subheading">High-resolution visualization of processor cycles, memory footprint, and network traffic over time.</p>
+            </div>
+            <div class="telemetry-toolbar">
+              <label for="telemetryServerSelect" class="toolbar-label">Target Instance:</label>
+              <div class="custom-select-wrapper">
+                <select id="telemetryServerSelect" class="custom-select">
+                  <option value="AGGREGATE">Fleet Aggregate (Average)</option>
+                  <!-- Individual servers injected dynamically -->
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Alert Threshold Guide Pill Banner -->
+          <div class="threshold-indicators-bar">
+            <div class="threshold-badge normal">
+              <span class="badge-dot"></span>
+              <strong>Normal Range:</strong> &lt; 80% CPU / &lt; 85% RAM
+            </div>
+            <div class="threshold-badge warning">
+              <span class="badge-dot"></span>
+              <strong>Warning Threshold:</strong> 80%–90% CPU | &gt; 85% RAM
+            </div>
+            <div class="threshold-badge critical">
+              <span class="badge-dot"></span>
+              <strong>Critical Threshold:</strong> &gt; 90% CPU
+            </div>
+          </div>
+
+          <!-- Charts Grid (Section B) -->
+          <div class="telemetry-charts-grid">
+            
+            <!-- Chart 1: CPU Usage Over Time -->
+            <div class="dashboard-panel chart-panel">
+              <div class="panel-header">
+                <div class="panel-title-group">
+                  <h3>CPU Usage Over Time (%)</h3>
+                  <p class="panel-subtitle">Processor utilization with 80% Warning &amp; 90% Critical reference boundaries</p>
+                </div>
+                <div class="chart-header-stat">
+                  <span class="live-val-label">Current:</span>
+                  <span class="live-val-number" id="telemetryCpuCurrent">42.5%</span>
+                </div>
+              </div>
+              <div class="panel-body chart-panel-body">
+                <div class="chart-canvas-wrapper">
+                  <canvas id="chartCpuHistory"></canvas>
+                </div>
+              </div>
+            </div>
+
+            <!-- Chart 2: Memory Usage Over Time -->
+            <div class="dashboard-panel chart-panel">
+              <div class="panel-header">
+                <div class="panel-title-group">
+                  <h3>Memory Usage Over Time (%)</h3>
+                  <p class="panel-subtitle">RAM consumption with 85% Warning threshold boundary</p>
+                </div>
+                <div class="chart-header-stat">
+                  <span class="live-val-label">Current:</span>
+                  <span class="live-val-number" id="telemetryMemCurrent">61.8%</span>
+                </div>
+              </div>
+              <div class="panel-body chart-panel-body">
+                <div class="chart-canvas-wrapper">
+                  <canvas id="chartMemHistory"></canvas>
+                </div>
+              </div>
+            </div>
+
+            <!-- Chart 3: Network Traffic Over Time (Inbound & Outbound) -->
+            <div class="dashboard-panel chart-panel full-width">
+              <div class="panel-header">
+                <div class="panel-title-group">
+                  <h3>Network Bandwidth Over Time (KB/s)</h3>
+                  <p class="panel-subtitle">Inbound Ingress vs Outbound Egress bandwidth comparison</p>
+                </div>
+                <div class="chart-header-stat-group">
+                  <div class="chart-header-stat">
+                    <span class="live-val-label text-cyan">Inbound:</span>
+                    <span class="live-val-number text-cyan" id="telemetryNetInCurrent">1,248 KB/s</span>
+                  </div>
+                  <div class="chart-header-stat">
+                    <span class="live-val-label text-blue">Outbound:</span>
+                    <span class="live-val-number text-blue" id="telemetryNetOutCurrent">845 KB/s</span>
+                  </div>
+                </div>
+              </div>
+              <div class="panel-body chart-panel-body">
+                <div class="chart-canvas-wrapper">
+                  <canvas id="chartNetworkHistory"></canvas>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+        </section>
+
+        <!-- ============================================== -->
+        <!-- SECTION 4: ALERTS (Notifications & Log)         -->
+        <!-- ============================================== -->
+        <section class="page-section" id="section-alerts">
+          
+          <div class="section-intro-bar">
+            <div>
+              <h2 class="section-heading">Alerts &amp; Incident Log</h2>
+              <p class="section-subheading">Automatic system alerts triggered when cloud resource thresholds are exceeded.</p>
+            </div>
+            <div class="section-actions">
+              <button class="btn btn-secondary btn-sm" id="btnAcknowledgeAllAlerts">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                Acknowledge All
+              </button>
+              <button class="btn btn-danger btn-sm" id="btnClearAlertHistory">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+                Clear History
+              </button>
+            </div>
+          </div>
+
+          <!-- Alert Counters Summary Cards -->
+          <div class="alert-summary-cards">
+            <div class="alert-stat-card border-danger">
+              <div class="alert-stat-value text-danger" id="countCriticalAlerts">0</div>
+              <div class="alert-stat-label">Critical Incidents (&gt;90% CPU)</div>
+            </div>
+            <div class="alert-stat-card border-warning">
+              <div class="alert-stat-value text-warning" id="countWarningAlerts">1</div>
+              <div class="alert-stat-label">Warnings (&gt;80% CPU / &gt;85% RAM)</div>
+            </div>
+            <div class="alert-stat-card border-info">
+              <div class="alert-stat-value text-info" id="countTotalAlertsLogged">1</div>
+              <div class="alert-stat-label">Total Logged Events</div>
+            </div>
+            <div class="alert-stat-card border-success">
+              <div class="alert-stat-value text-success" id="countResolvedAlerts">0</div>
+              <div class="alert-stat-label">Auto-Resolved / Normal</div>
+            </div>
+          </div>
+
+          <!-- Alert Filter Tabs -->
+          <div class="alert-filter-bar">
+            <div class="filter-pills-group" id="alertSeverityFilters">
+              <button class="filter-pill active" data-severity="ALL">All Alerts</button>
+              <button class="filter-pill" data-severity="CRITICAL">Critical Only</button>
+              <button class="filter-pill" data-severity="WARNING">Warnings Only</button>
+              <button class="filter-pill" data-severity="RESOLVED">Resolved Only</button>
+            </div>
+            
+            <div class="dedup-info-badge">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+              <span>Smart Deduplication Active: Duplicate alerts per interval are suppressed</span>
+            </div>
+          </div>
+
+          <!-- Alert List View (Section D) -->
+          <div class="alert-log-panel">
+            <div class="alert-list-container" id="alertListContainer">
+              <!-- Populated by JavaScript -->
+            </div>
+            
+            <!-- Empty Alert State -->
+            <div class="alert-empty-state" id="alertListEmpty" style="display: none;">
+              <svg viewBox="0 0 24 24" width="48" height="48" stroke="currentColor" stroke-width="1.5" fill="none">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+              </svg>
+              <h3>No alerts matching the selected filter</h3>
+              <p>Resource utilization levels are within operating parameters.</p>
+            </div>
+          </div>
+
+          <!-- Threshold Rule Specifications Panel -->
+          <div class="dashboard-panel mt-4">
+            <div class="panel-header">
+              <h3>Configured Alert Rules</h3>
+            </div>
+            <div class="panel-body">
+              <div class="rules-table-wrapper">
+                <table class="rules-table">
+                  <thead>
+                    <tr>
+                      <th>Rule ID</th>
+                      <th>Target Metric</th>
+                      <th>Condition</th>
+                      <th>Severity</th>
+                      <th>Action Triggered</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><code>RULE-CPU-001</code></td>
+                      <td>CPU Utilization</td>
+                      <td>Simulated CPU &gt; 80%</td>
+                      <td><span class="pill pill-warning">WARNING</span></td>
+                      <td>Broadcast warning notification, log incident, highlight table row</td>
+                    </tr>
+                    <tr>
+                      <td><code>RULE-CPU-002</code></td>
+                      <td>CPU Utilization</td>
+                      <td>Simulated CPU &gt; 90%</td>
+                      <td><span class="pill pill-danger">CRITICAL</span></td>
+                      <td>Trigger critical audible/visual alert, dispatch priority toast, escalate status</td>
+                    </tr>
+                    <tr>
+                      <td><code>RULE-MEM-001</code></td>
+                      <td>Memory Utilization</td>
+                      <td>Simulated RAM &gt; 85%</td>
+                      <td><span class="pill pill-warning">WARNING</span></td>
+                      <td>Log memory pressure notification, display optimization recommendation</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- ============================================== -->
+        <!-- SECTION 5: ABOUT & ARCHITECTURE                -->
+        <!-- ============================================== -->
+        <section class="page-section" id="section-about">
+          
+          <div class="about-hero">
+            <div class="about-badge">ARCHITECTURE &amp; ENGINEERING BRIEF</div>
+            <h2>Cloud Resource Monitoring Dashboard</h2>
+            <p class="about-lead">
+              A lightweight, framework-free cloud operations dashboard built with pure HTML5, CSS3, Vanilla JavaScript, and Chart.js.
+              Engineered to run seamlessly offline or in any modern browser without external servers or cloud accounts.
+            </p>
+          </div>
+
+          <!-- Architecture Comparison Grid -->
+          <div class="about-grid">
+            
+            <!-- Card 1: Version 1 Current Architecture -->
+            <div class="dashboard-panel">
+              <div class="panel-header">
+                <div class="panel-title-group">
+                  <div class="badge-tag">Current Engine</div>
+                  <h3>Version 1: Local Simulation Engine</h3>
+                </div>
+              </div>
+              <div class="panel-body about-card-body">
+                <p>
+                  Version 1 runs completely client-side in your web browser. No cloud bill, no API keys, and no backend dependencies are required.
+                </p>
+                <div class="arch-box">
+                  <div class="arch-node">Client Browser (HTML5 / CSS3 / Vanilla JS)</div>
+                  <div class="arch-arrow">&#8595; Requests state update</div>
+                  <div class="arch-node highlight">MockCloudService (Random-walk simulator with bounded metrics)</div>
+                  <div class="arch-arrow">&#8595; Dispatches data points</div>
+                  <div class="arch-node">UI Manager &amp; Chart.js Render Engine</div>
+                </div>
+                <ul class="feature-checklist">
+                  <li><strong>Zero Cost:</strong> No paid cloud subscriptions needed.</li>
+                  <li><strong>Instant Setup:</strong> Open <code>index.html</code> in any browser.</li>
+                  <li><strong>Deterministic Testing:</strong> Easily simulate CPU spikes (&gt;90%) to test alerting pipelines.</li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- Card 2: Version 2 Cloud Integration Blueprint -->
+            <div class="dashboard-panel">
+              <div class="panel-header">
+                <div class="panel-title-group">
+                  <div class="badge-tag tag-blue">Future Roadmap</div>
+                  <h3>Version 2: AWS CloudWatch Integration</h3>
+                </div>
+              </div>
+              <div class="panel-body about-card-body">
+                <p>
+                  The code structure features an abstract <code>CloudDataProvider</code> pattern. To switch to live AWS production monitoring,
+                  replace the simulation adapter with a real backend proxy.
+                </p>
+                <div class="arch-box">
+                  <div class="arch-node">Dashboard Frontend (Vanilla JS)</div>
+                  <div class="arch-arrow">&#8595; REST API / WebSocket (JWT Bearer Auth)</div>
+                  <div class="arch-node highlight-aws">Python FastAPI / Flask Backend (Hosted on EC2 or AWS Lambda)</div>
+                  <div class="arch-arrow">&#8595; AWS IAM Role (Boto3 SDK)</div>
+                  <div class="arch-node">Amazon CloudWatch Metrics &amp; EC2 Telemetry</div>
+                </div>
+                <ul class="feature-checklist">
+                  <li><strong>Security:</strong> AWS IAM credentials never touch the browser.</li>
+                  <li><strong>Least Privilege:</strong> Backend uses read-only <code>cloudwatch:GetMetricData</code> policies.</li>
+                  <li><strong>Caching:</strong> Backend caches metrics in Redis to minimize AWS API costs.</li>
+                </ul>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Production Backend Integration Code Example -->
+          <div class="dashboard-panel mt-4">
+            <div class="panel-header">
+              <div class="panel-title-group">
+                <h3>Backend Integration Guide: Python FastAPI + AWS Boto3</h3>
+                <p class="panel-subtitle">How to bridge this dashboard to real Amazon EC2 &amp; CloudWatch instances securely</p>
+              </div>
+              <button class="btn btn-secondary btn-sm" id="btnCopyFastApiCode">Copy Code</button>
+            </div>
+            <div class="panel-body">
+              <pre class="code-block"><code id="codeFastApiSample"># backend_service.py - Secure CloudWatch Proxy (Python 3.11 + FastAPI + Boto3)
+from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi.middleware.cors import CORSMiddleware
+import boto3
+from datetime import datetime, timedelta, timezone
+
+app = FastAPI(title="CloudWatch Pulse Proxy API")
+
+# Enable CORS for local development dashboard
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000", "http://127.0.0.1:5500"],
+    allow_credentials=True,
+    allow_methods=["GET"],
+    allow_headers=["*"],
+)
+
+# Connect Boto3 using IAM Instance Profile or environment variables
+# DO NOT hardcode AWS access keys or secrets in source code!
+cloudwatch = boto3.client('cloudwatch', region_name='us-east-1')
+ec2 = boto3.client('ec2', region_name='us-east-1')
+
+@app.get("/api/v1/metrics/cpu")
+async def get_instance_cpu(instance_id: str = "i-0a89f3b1e84"):
+    """Fetch live CPU Utilization from Amazon CloudWatch."""
+    end_time = datetime.now(timezone.utc)
+    start_time = end_time - timedelta(minutes=15)
+    
+    response = cloudwatch.get_metric_data(
+        MetricDataQueries=[{
+            'Id': 'cpu_util',
+            'MetricStat': {
+                'Metric': {
+                    'Namespace': 'AWS/EC2',
+                    'MetricName': 'CPUUtilization',
+                    'Dimensions': [{'Name': 'InstanceId', 'Value': instance_id}]
+                },
+                'Period': 60,
+                'Stat': 'Average'
+            },
+            'ReturnData': True
+        }],
+        StartTime=start_time,
+        EndTime=end_time
+    )
+    return response['MetricDataResults']
+</code></pre>
+            </div>
+          </div>
+
+          <!-- Tech Stack Details -->
+          <div class="dashboard-panel mt-4">
+            <div class="panel-header">
+              <h3>Technical Specification &amp; Stack</h3>
+            </div>
+            <div class="panel-body">
+              <div class="tech-spec-grid">
+                <div class="tech-item">
+                  <div class="tech-label">Structure</div>
+                  <div class="tech-value">HTML5 Semantic Elements</div>
+                  <p class="tech-desc">Accessible landmark navigation, aria-labels, semantic sections.</p>
+                </div>
+                <div class="tech-item">
+                  <div class="tech-label">Styling</div>
+                  <div class="tech-value">CSS3 Custom Properties</div>
+                  <p class="tech-desc">Theme-aware variables, responsive CSS Grid, Flexbox, zero preprocessors.</p>
+                </div>
+                <div class="tech-item">
+                  <div class="tech-label">Scripting</div>
+                  <div class="tech-value">Vanilla ECMAScript 2022</div>
+                  <p class="tech-desc">Object-oriented modular design, event-driven reactive state, zero framework bloat.</p>
+                </div>
+                <div class="tech-item">
+                  <div class="tech-label">Data Visualization</div>
+                  <div class="tech-value">Chart.js v4.4</div>
+                  <p class="tech-desc">Hardware-accelerated HTML5 canvas line, area, and bar charts.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- MODAL: SERVER INSPECTION / DETAILS             -->
+  <!-- ============================================== -->
+  <div class="modal-backdrop" id="serverModalBackdrop">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <h3 id="modalServerName">us-east-1-app-01</h3>
+          <span class="modal-subtitle" id="modalServerId">i-0a89f3b1e84</span>
+        </div>
+        <button class="btn-icon" id="modalCloseBtn" aria-label="Close Modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-specs-grid">
+          <div class="spec-cell">
+            <span class="spec-label">Operating System</span>
+            <span class="spec-val" id="modalServerOs">Ubuntu 22.04 LTS</span>
+          </div>
+          <div class="spec-cell">
+            <span class="spec-label">Instance Type</span>
+            <span class="spec-val">t3.xlarge (4 vCPU, 16 GB)</span>
+          </div>
+          <div class="spec-cell">
+            <span class="spec-label">Availability Zone</span>
+            <span class="spec-val" id="modalServerZone">us-east-1a</span>
+          </div>
+          <div class="spec-cell">
+            <span class="spec-label">Private IP</span>
+            <span class="spec-val" id="modalServerIp">10.0.1.42</span>
+          </div>
+          <div class="spec-cell">
+            <span class="spec-label">Current Status</span>
+            <span class="spec-val" id="modalServerStatus"><span class="pill pill-success">Online</span></span>
+          </div>
+          <div class="spec-cell">
+            <span class="spec-label">Instance Uptime</span>
+            <span class="spec-val" id="modalServerUptime">28d 14h 22m</span>
+          </div>
+        </div>
+
+        <div class="modal-metric-gauges">
+          <div class="gauge-container">
+            <div class="gauge-header">
+              <span>CPU Utilization</span>
+              <span id="modalCpuText">42.5%</span>
+            </div>
+            <div class="progress-bar-track">
+              <div class="progress-bar-fill fill-cpu" id="modalCpuBar" style="width: 42.5%;"></div>
+            </div>
+          </div>
+
+          <div class="gauge-container">
+            <div class="gauge-header">
+              <span>Memory Utilization</span>
+              <span id="modalMemText">61.8%</span>
+            </div>
+            <div class="progress-bar-track">
+              <div class="progress-bar-fill fill-memory" id="modalMemBar" style="width: 61.8%;"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-chart-section">
+          <h4>Historical CPU &amp; Memory (Last 10 Ticks)</h4>
+          <div class="chart-canvas-wrapper" style="height: 180px;">
+            <canvas id="modalTelemetryChart"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="modalBtnRestart">Simulate Reboot</button>
+        <button class="btn btn-primary" id="modalBtnClose">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div class="toast-container" id="toastContainer" aria-live="polite"></div>
+
+  <!-- Application Logic -->
+  <script src="script.js"></script>
+</body>
+</html>
